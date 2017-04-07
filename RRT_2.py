@@ -18,7 +18,7 @@ N = 10
 windowSize = [X, Y]
 
 robot_radius = 5
-vicinity = 10
+vicinity = 3
 
 min_dist = 2.0
 Maxnode = 10000
@@ -111,11 +111,16 @@ def main():
 	initPost = Node((1,1), None)
 	goalPost = Node((300,300), None)
 	temp = Node(None,None)
+	counter = 0
 
 	reach_goal = False
 	initializing_obstacles(0)
 	node = []
 	node.append(initPost)
+
+	q_near = node[0].point
+
+	print(q_near)
 
 	while count < 3000: #count<Maxnode:
 		if (local_connector(node[count].point, goalPost.point) == True):
@@ -123,8 +128,16 @@ def main():
 			break
 		else: 
 			rand = generate_random_point()
-			temp.point = extend(node[count].point,rand)
-			temp.parent = node[count]
+
+			#Find the qnear
+			for n in range(1,len(node)-1):
+				if (dist(node[n].point,goalPost.point)<dist(q_near,goalPost.point)):
+					q_near = node[n].point
+					counter = n
+
+
+			temp.point = extend(q_near,rand)
+			temp.parent = node[counter].point
 			node.append(temp)
 			print(temp.point)
 			temp = Node(None,None)
