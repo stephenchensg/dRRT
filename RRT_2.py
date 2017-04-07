@@ -18,19 +18,19 @@ N = 10
 windowSize = [X, Y]
 
 robot_radius = 5
-vicinity = 3
+vicinity = 5
 
 min_dist = 2.0
-Maxnode = 10000
+Maxnode = 5000
 
 count = 0
 cirObs = []
 
-def dist(p1,p2):
+def dist(p1,p2):  #check distance between the two points
 
 	return sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
 
-def extend(p1,p2):
+def extend(p1,p2):  #extend the tree to q_new
 
 	check = False
 	if (dist(p1,p2)< 5):
@@ -54,7 +54,7 @@ def extend(p1,p2):
 		return (a1, a2)
 	return p1
 
-def local_connector(p1,p2):
+def local_connector(p1,p2):  #attempt to connect to the end_goal
 	if (dist(p1,p2)<min_dist):
 		return True
 	return False
@@ -66,21 +66,21 @@ def local_connector(p1,p2):
 		#return True
 	#return False
 
-def ce_collision_check(p1,p2,r_radius,ob_radius):
+def ce_collision_check(p1,p2,r_radius,ob_radius): #collision check
 
 	distance = dist(p1,p2)
 	if (distance >= (r_radius + ob_radius)):
 		return True
 	return False
 
-def generate_random_point():
+def generate_random_point(): # generate random points
 	while True:
 		p = random.random()*X,random.random()*Y
 		p_no_collision_env = collides(p)
 		if (p_no_collision_env == True):
 			return p
 
-def collides(p):
+def collides(p): # check collision with environment
 
 	#for cir in cirObs:
 		#if (ce_collision_check(p,(cir[0],cir[1]),robot_radius,cir[2])==True):
@@ -94,22 +94,22 @@ def collides(p):
 	return False
 
 
-def initializing_obstacles(configuration):
+def initializing_obstacles(configuration): #initializing the circular obstacles
 
 	 global cirObs
 	 cirObs = []
 	 if (configuration == 0):
-	 	cirObs.append((X/4,Y/4,80))
+	 	cirObs.append((X/4,Y/4,90))
 	 	cirObs.append((X/2,Y/2,80))
-	 	cirObs.append((X/1.5,Y/1.5,30))
+	 	cirObs.append((X/1.5,Y/1.5,60))
 
 
 def main():
 
 	global count
 	count = 0
-	initPost = Node((1,1), None)
-	goalPost = Node((300,300), None)
+	initPost = Node((1,1), None)   #initialize the robot position
+	goalPost = Node((700,700), None) # end goal position
 	temp = Node(None,None)
 	counter = 0
 
@@ -120,9 +120,9 @@ def main():
 
 	q_near = node[0].point
 
-	print(q_near)
+	print(q_near)  #check the points
 
-	while count < 3000: #count<Maxnode:
+	while count < Maxnode: 
 		if (local_connector(node[count].point, goalPost.point) == True):
 			reach_goal = True
 			break
@@ -143,7 +143,7 @@ def main():
 			temp = Node(None,None)
 			count = count + 1
 
-	print(reach_goal)
+	print(reach_goal) #check if reach goal
 	#plot the graph
 	circle1 = plt.Circle((cirObs[0][0], cirObs[0][1]), cirObs[0][2], color='r')
 	circle2 = plt.Circle((cirObs[1][0], cirObs[1][1]), cirObs[1][2], color='blue')
