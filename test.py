@@ -19,6 +19,6 @@ y = Node((2,2),x)
 obs = [x, y]
 
 
-print(obs)
+print(obs[0].point)
 print(x)
 print(len(obs))
