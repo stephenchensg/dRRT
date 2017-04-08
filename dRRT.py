@@ -16,8 +16,6 @@ X = 800
 Y = 800
 N = 10
 
-windowSize = [X, Y]
-
 robot_radius = 2
 vicinity = 5
 
@@ -69,24 +67,17 @@ def local_connector(p1,p2):  #attempt to connect to the end_goal
 
         for xb, yb in zip(b1,b2):
 
-                if (collides((xb,yb))==True):
-                    check1 = True
-                else: 
-                    return False  
-                    break
+            if (collides((xb,yb))==True):
+                check1 = True
+            else: 
+                return False  
+                break
 
         if (check1 == True):
             for xb, yb in zip(b1,b2):
                 plt.plot(xb, yb,"ro")
 
         return check1    
-
-#def pc_collision_check(p1,p2,radius):
-
-    #distance = dist(p1,p2)
-    #if (distance >= radius):
-        #return True
-    #return False
 
 def ce_collision_check(p1,p2,r_radius,ob_radius): #collision check
 
@@ -104,16 +95,19 @@ def generate_random_point(): # generate random points
 
 def collides(p): # check collision with environment
 
-    #for cir in cirObs:
-        #if (ce_collision_check(p,(cir[0],cir[1]),robot_radius,cir[2])==True):
-            #return True
-        #return False
+    collision_free = False
+    for cir in range(len(cirObs)):
+        if (ce_collision_check(p,(cirObs[cir][0],cirObs[cir][1]),robot_radius,cirObs[cir][2])==True):
+            collision_free = True
+        else: 
+            return False
+    return collision_free
 
-    if (ce_collision_check(p,(cirObs[0][0],cirObs[0][1]),robot_radius,cirObs[0][2])==True):
-        if (ce_collision_check(p,(cirObs[1][0],cirObs[1][1]),robot_radius,cirObs[1][2])==True):
-            if (ce_collision_check(p,(cirObs[2][0],cirObs[2][1]),robot_radius,cirObs[2][2])==True):
-                return True
-    return False
+    #if (ce_collision_check(p,(cirObs[0][0],cirObs[0][1]),robot_radius,cirObs[0][2])==True):
+        #if (ce_collision_check(p,(cirObs[1][0],cirObs[1][1]),robot_radius,cirObs[1][2])==True):
+           # if (ce_collision_check(p,(cirObs[2][0],cirObs[2][1]),robot_radius,cirObs[2][2])==True):
+               # return True
+    #return False
 
 
 def initializing_obstacles(configuration): #initializing the circular obstacles
