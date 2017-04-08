@@ -11,10 +11,10 @@ N = 10
 
 robot_radius = 2
 vicinity = 5
-radius = 20
+radius = 100
 
 min_dist = 2.0
-Maxnode = 1000
+Maxnode = 200
 
 count = 0
 cirObs = []
@@ -93,7 +93,7 @@ def main():
     
     G = nx.Graph()
     G.add_node(initPost)
-    #G.add_node(goalPost)
+    G.add_node(goalPost)
 
     for i in range(Maxnode):
         rand = generate_random_point()
@@ -109,6 +109,14 @@ def main():
             if (edge_check(a1[ux],U_collection[j])==True):
                 G.add_edge(a1[ux],U_collection[j])
                 G.add_edge(U_collection[j],a1[ux])
+                #xx = np.linspace(a1[ux][0],(a1[ux][0]+U_collection[j][0]),100)
+                #yy = np.linspace(a1[ux][1],(a1[ux][1]+U_collection[j][1]),100)
+                #plt.plot(xx,yy,'-')
+
+    #c1 = G.edges()
+    #c1.sort()
+    #for k in range(len(c1)):
+       #print(c1[k])
 
     print("--- %s seconds ---" % (time.time() - start_time)) #check if reach goal
 
