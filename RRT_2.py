@@ -115,8 +115,8 @@ def initializing_obstacles(configuration): #initializing the circular obstacles
      global cirObs
      cirObs = []
      if (configuration == 0):
-        cirObs.append((X/4,Y/4,90))
-        cirObs.append((X/2,Y/2,80))
+        cirObs.append((X/4,Y/4,120))
+        cirObs.append((X/2,Y/2,200))
         cirObs.append((X/1.5,Y/1.5,60))
 
 

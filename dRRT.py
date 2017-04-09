@@ -1,3 +1,4 @@
+import networkx as nx
 import math, sys, random
 from math import *
 #import pygame
@@ -6,53 +7,72 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-class Node(object):
-    def __init__(self, point, parent):
-        super(Node, self).__init__()
-        self.point = point
-        self.parent = parent
-
 X = 800
 Y = 800
 N = 10
 
 robot_radius = 2
 vicinity = 5
+radius = 100
 
 min_dist = 2.0
-Maxnode = 5000
+Maxnode = 300
+
+N1 = 100
 
 count = 0
 cirObs = []
+
+class Node(object):
+    def __init__(self, point, distance):
+        super(Node, self).__init__()
+        self.point = point
+        self.distance = distance
 
 def dist(p1,p2):  #check distance between the two points
 
     return sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
 
-def extend(p1,p2):  #extend the tree to q_new
+def generate_random_point(): # generate random points
+    while True:
+        p = random.random()*X,random.random()*Y
+        p_no_collision_env = collides(p)
+        if (p_no_collision_env == True):
+            return p
 
-    check = False
-    if (dist(p1,p2)< 5):
-        a1 = p2[0]
-        a2 = p2[1]
-    else: 
-        angle = atan2(p2[1]-p1[1],p2[0]-p1[0])
-        a1 = p1[0] + vicinity*cos(angle)
-        a2 = p1[1] + vicinity*sin(angle)
+def ce_collision_check(p1,p2,r_radius,ob_radius): #collision check
 
-    x1 = np.linspace(p1[0], a1, N)
-    x2 = np.linspace(p1[1], a2, N)
+    distance = dist(p1,p2)
+    if (distance >= (r_radius + ob_radius)):
+        return True
+    return False
 
-    for x, y in zip(x1,x2):
+def collides(p): # check collision with environment
 
-            if (collides((x,y))==True):
-                check = True
-            else: 
-                return p1
-                break
-        
-    if (check == True):
-        return (a1, a2)
+    collision_free = False
+    for cir in range(len(cirObs)):
+        if (ce_collision_check(p,(cirObs[cir][0],cirObs[cir][1]),robot_radius,cirObs[cir][2])==True):
+            collision_free = True
+        else: 
+            return False
+    return collision_free
+
+def edge_check(p1,p2):  #attempt to connect to the end_goal
+    
+    check1 = False
+
+    b1 = np.linspace(p1[0], p2[0], 100)
+    b2 = np.linspace(p1[1], p2[1], 100)
+
+    for xb, yb in zip(b1,b2):
+
+        if (collides((xb,yb))==True):
+            check1 = True
+        else: 
+            return False  
+            break
+
+    return check1 
 
 def local_connector(p1,p2):  #attempt to connect to the end_goal
     
@@ -79,130 +99,117 @@ def local_connector(p1,p2):  #attempt to connect to the end_goal
 
         return check1    
 
-def ce_collision_check(p1,p2,r_radius,ob_radius): #collision check
+def Near(G,rand,radius):
+    
+    a = G.nodes()
+    u = []
+    for i in range(len(a)):
+        if (dist(a[i],rand)<radius):
+            u.append(a[i])
+    return u
 
-    distance = dist(p1,p2)
-    if (distance >= (r_radius + ob_radius)):
-        return True
-    return False
+def Nearest(G,rand,k):
+    
+    a = G.nodes()
+    u = []
+    v = []
 
-def generate_random_point(): # generate random points
-    while True:
-        p = random.random()*X,random.random()*Y
-        p_no_collision_env = collides(p)
-        if (p_no_collision_env == True):
-            return p
+    for i in range(len(a)):
+        if (dist(a[i],rand)<50):
+            u.append(Node(a[i],dist(a[i],rand)))
+            #print(a[i])
 
-def collides(p): # check collision with environment
+    sorted(u,key =lambda u: u.distance)
 
-    collision_free = False
-    for cir in range(len(cirObs)):
-        if (ce_collision_check(p,(cirObs[cir][0],cirObs[cir][1]),robot_radius,cirObs[cir][2])==True):
-            collision_free = True
-        else: 
-            return False
-    return collision_free
+    for j in range(k):
+        if (len(u)<=j): 
+            break
+        else:
+            v.append(u[j].point)
 
-    #if (ce_collision_check(p,(cirObs[0][0],cirObs[0][1]),robot_radius,cirObs[0][2])==True):
-        #if (ce_collision_check(p,(cirObs[1][0],cirObs[1][1]),robot_radius,cirObs[1][2])==True):
-           # if (ce_collision_check(p,(cirObs[2][0],cirObs[2][1]),robot_radius,cirObs[2][2])==True):
-               # return True
-    #return False
-
+    print(v)
+    return v
 
 def initializing_obstacles(configuration): #initializing the circular obstacles
-
+    
      global cirObs
      cirObs = []
      if (configuration == 0):
-        cirObs.append((X/4,Y/4,90))
-        cirObs.append((X/2,Y/2,80))
+        cirObs.append((X/4,Y/4,120))
+        cirObs.append((X/2,Y/2,200))
         cirObs.append((X/1.5,Y/1.5,60))
 
+def oracle(q_nearset,p1): #qnear is a list of near configuration with the random point
+
+    min_angle = math.fabs(atan2(q_nearset[0][1]-p1[1],q_nearset[0][0]-p1[0]))
+    q_new = q_nearset[0]
+    for i in range(len(q_nearset)):
+        angle = math.fabs(atan2(q_nearset[i][1]-p1[1],q_nearset[i][0]-p1[0]))
+        if (angle<min_angle):
+            q_new = q_nearset[i]
+            min_angle = angle
+    return q_new
 
 def main():
 
     start_time = time.time()
-
-    global count
+    #start_time = time.time()
+    initPost = (1,1)   #initialize the robot position
+    goalPost = (700,700) # end goal position
     count = 0
-    initPost = Node((1,1), None)   #initialize the robot position
-    goalPost = Node((700,700), None) # end goal position
-    temp = Node(None,None)
-    counter = 0
-
-    reach_goal = False
     initializing_obstacles(0)
-    node = []
-    node.append(initPost)
+    reach_goal = False
 
-    q_near = node[0].point
-    q_closest_goal = node[0].point
+    G = nx.Graph()
+    G.add_node(initPost)
+    G.add_node(goalPost)
 
-    #print(q_near)  #check the points
+    for l in range(Maxnode):
+        rand1 = generate_random_point()
+        G.add_node(rand1)
+   
+    a1 = G.nodes()
 
-    while count < Maxnode: 
 
-        #import ipdb; ipdb.set_trace()
-        if (reach_goal == False):
-            for n in range(1,len(node)-1):
-                if (dist(node[n].point,goalPost.point)<dist(q_closest_goal,goalPost.point)):
-                    q_closest_goal = node[n].point
-            
-            #print(q_closest_goal)    
-            if (local_connector(q_closest_goal, goalPost.point) == True):
-                reach_goal = True
-                break
-        if (reach_goal == True):
-            break
+    for ux in range(len(a1)):
+        U_collection = Near(G,a1[ux],radius)
+        U_collection.remove(a1[ux])
 
-        else: 
+        for j in range(len(U_collection)):
+            if (edge_check(a1[ux],U_collection[j])==True):
+                G.add_edge(a1[ux],U_collection[j])
+                G.add_edge(U_collection[j],a1[ux])
+
+    while reach_goal == False:
+
+        for i in range(N1):
+            if (i==0 or i ==1): 
+                k =  1
+            else: 
+                k = math.log(i)
+
             rand = generate_random_point()
             #print(rand)
-            plt.plot(rand[0],rand[1],"green")
+            q_nearset = Nearest(G,rand,k)
+            q_new = oracle(q_nearset,rand)
+            G.add_node(q_new)
 
-            #Find the qnear
-            for n in range(1,len(node)-1):
-                if (dist(node[n].point,rand)<dist(q_near,rand)):
-                    q_near = node[n].point
-                    counter = n
+            for j in range(len(q_nearset)):
+                G.add_edge(q_nearset[j],q_new)
+                G.add_edge(q_new,q_nearset[j])
 
-            temp.point = extend(q_near,rand)
-            temp.parent = node[counter].parent
-            node.append(temp)
-            temp = Node(None,None)
-            count = count + 1
+            if(local_connector(q_new,goalPost)==True):
+                reach_goal = True
+                break
 
-    print(reach_goal) 
-    print("--- %s seconds ---" % (time.time() - start_time)) #check if reach goal
-    
-    #plot the graph
-    circle1 = plt.Circle((cirObs[0][0], cirObs[0][1]), cirObs[0][2], color='r')
-    circle2 = plt.Circle((cirObs[1][0], cirObs[1][1]), cirObs[1][2], color='blue')
-    circle3 = plt.Circle((cirObs[2][0], cirObs[2][1]), cirObs[2][2], color='g', clip_on=False)
+        print(reach_goal)
 
-    for n in node:
-        plt.plot(n.point[0],n.point[1],"ro")
-        #print(n.point[0],n.point[1])
-    #fig, ax = plt.subplots()
 
-    plt.plot(initPost.point[0],initPost.point[1], "bo")
-    plt.plot(goalPost.point[0],goalPost.point[1], "bo")
-
-    ax = plt.gca()
-    ax.set_xlim((0, X))
-    ax.set_ylim((0, Y))
-
-    ax.add_artist(circle1)
-    ax.add_artist(circle2)
-    ax.add_artist(circle3)
-
-# here must be something like circle.plot() or not?
-
-    plt.show()
-    raw_input()
 
 if __name__ == '__main__':
     main()
+ 
+
+
 
 
