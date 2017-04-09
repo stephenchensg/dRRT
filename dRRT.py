@@ -139,7 +139,7 @@ def main():
     q_near = node[0].point
     q_closest_goal = node[0].point
 
-    print(q_near)  #check the points
+    #print(q_near)  #check the points
 
     while count < Maxnode: 
 
@@ -149,7 +149,7 @@ def main():
                 if (dist(node[n].point,goalPost.point)<dist(q_closest_goal,goalPost.point)):
                     q_closest_goal = node[n].point
             
-            print(q_closest_goal)    
+            #print(q_closest_goal)    
             if (local_connector(q_closest_goal, goalPost.point) == True):
                 reach_goal = True
                 break
