@@ -101,6 +101,9 @@ def main():
 
     a1 = G.nodes()
 
+    xplot =[]
+    yplot =[]
+
     for ux in range(len(a1)):
         U_collection = Near(G,a1[ux],radius)
         U_collection.remove(a1[ux])
@@ -109,9 +112,9 @@ def main():
             if (edge_check(a1[ux],U_collection[j])==True):
                 G.add_edge(a1[ux],U_collection[j])
                 G.add_edge(U_collection[j],a1[ux])
-                #xx = np.linspace(a1[ux][0],(a1[ux][0]+U_collection[j][0]),100)
-                #yy = np.linspace(a1[ux][1],(a1[ux][1]+U_collection[j][1]),100)
-                #plt.plot(xx,yy,'-')
+                xplot.append(a1[ux])
+                yplot.append(U_collection[j])
+             
 
     #c1 = G.edges()
     #c1.sort()
@@ -120,17 +123,26 @@ def main():
 
     print("--- %s seconds ---" % (time.time() - start_time)) #check if reach goal
 
+    #nx.draw(G,pos=nx.spring_layout(G))
+    #plt.show()
+    #edges = nx.draw_networkx_edges(G,pos=nx.spring_layout(G))
     #plot the graph
+
     circle1 = plt.Circle((cirObs[0][0], cirObs[0][1]), cirObs[0][2], color='r')
     circle2 = plt.Circle((cirObs[1][0], cirObs[1][1]), cirObs[1][2], color='blue')
     circle3 = plt.Circle((cirObs[2][0], cirObs[2][1]), cirObs[2][2], color='g', clip_on=False)
 
-    for j in range(len(a1)):
-        plt.plot(a1[j][0],a1[j][1],"ro")
+    #for j in range(len(a1)):
+        #plt.plot(a1[j][0],a1[j][1],"ro")
 
 
-    plt.plot(initPost[0],initPost[1], "bo")
-    plt.plot(goalPost[0],goalPost[1], "bo")
+    for m in range(len(xplot)):
+        xplot1, yplot1 = [xplot[m][0],yplot[m][0]], [xplot[m][1],yplot[m][1]]
+        plt.plot(xplot1,yplot1, marker = 'o')
+
+
+    #plt.plot(initPost[0],initPost[1], "bo")
+    #plt.plot(goalPost[0],goalPost[1], "bo")
 
 
     ax = plt.gca()
@@ -141,13 +153,16 @@ def main():
     ax.add_artist(circle2)
     ax.add_artist(circle3)
 
-# here must be something like circle.plot() or not?
+    shortest = nx.shortest_path(G,source = initPost,target = goalPost)
+    for k in range(len(shortest)):
+        plt.plot(shortest[k][0],shortest[k][1], "bo")
 
+    print(shortest)
+
+# here must be something like circle.plot() or not?
     plt.show()
 
     #checkf for the shortest path
-    shortest = nx.shortest_path(G,source = initPost,target = goalPost)
-    print(shortest)
 
     raw_input()
 

@@ -32,4 +32,8 @@ print(G.nodes())
 print(len(G))
 print(G.edges())
 
+
+nx.draw(G)
+plt.show()
+
 print(nx.shortest_path(G,source = (1,1), target= (3,3)))
