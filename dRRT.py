@@ -18,7 +18,7 @@ radius = 50
 min_dist = 2.0
 Maxnode = 200
 
-N1 = 100
+N1 = 500
 
 count = 0
 cirObs = []
@@ -142,11 +142,11 @@ def initializing_obstacles(configuration): #initializing the circular obstacles
 def oracle(G,q_closest_goal,rand): #qnear is a list of near configuration with the random point
 
     a = G.nodes()
-    min_angle = math.fabs(atan2(q_closest_goal[1]-rand[1],q_closest_goal[0]-rand[0]))
+    min_angle = math.fabs(atan2(q_closest_goal[1]-0,q_closest_goal[0]-0)-atan2(rand[1]-0,rand[0]-0))
     q_new = a[0]
 
     for i in range(len(a)):
-        angle = math.fabs(atan2(a[i][1]-rand[1],a[i][0]-rand[0]))
+        angle = math.fabs(atan2(a[i][1]-0,a[i][0]-0)-atan2(rand[1]-0,rand[0]-0))
         if (angle<min_angle):
             q_new = a[i]
             min_angle = angle
@@ -186,7 +186,6 @@ def main():
 
     G1 = nx.Graph()
     G1.add_node(initPost)
-    #G1.add_node(goalPost)
 
     b1 = G1.nodes()
     q_closest_goal = b1[0]
@@ -207,10 +206,11 @@ def main():
             b1 = G1.nodes()
 
             for n in range(len(b1)):
-                if (dist(b1[n],goalPost)<dist(q_closest_goal,goalPost)):
+                if (dist(b1[n],rand)<dist(q_closest_goal,rand)):
                     q_closest_goal = b1[n]
 
             q_new = oracle(G,q_closest_goal,rand) 
+            print(q_new)
 
             if(edge_check(q_closest_goal, q_new)==True):
                 G1.add_node(q_new)
@@ -227,6 +227,10 @@ def main():
    
             for m in range(len(q_nearset)):
                if(local_connector(q_nearset[m],goalPost)==True):
+                   G1.add_edge(q_nearset[m],goalPost)
+                   G1.add_edge(goalPost,q_nearset[m]) 
+                   xplot.append(q_nearset[m])
+                   yplot.append(goalPost)
                    reach_goal = True
                    break
             if (reach_goal == True):
@@ -246,7 +250,11 @@ def main():
 
     plt.plot(initPost[0],initPost[1], "bo")
     plt.plot(goalPost[0],goalPost[1], "bo")
+ 
+    b2 = G.nodes()
 
+    for t in range(len(b2)):
+        plt.plot(b2[t][0],b2[t][1],"ro")
 
     for m in range(len(xplot)):
         xplot1, yplot1 = [xplot[m][0],yplot[m][0]], [xplot[m][1],yplot[m][1]]
@@ -265,7 +273,6 @@ def main():
         plt.plot(shortest[k][0],shortest[k][1], "bo")
 
     print(shortest)
-    # here must be something like circle.plot() or not?
 
     plt.show()
     raw_input()
