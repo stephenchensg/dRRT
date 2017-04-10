@@ -13,10 +13,10 @@ N = 10
 
 robot_radius = 2
 vicinity = 5
-radius = 100
+radius = 50
 
 min_dist = 2.0
-Maxnode = 300
+Maxnode = 200
 
 N1 = 100
 
@@ -108,15 +108,15 @@ def Near(G,rand,radius):
             u.append(a[i])
     return u
 
-def Nearest(G,rand,k):
+def Nearest(G1,goalPost,k):
     
-    a = G.nodes()
+    a = G1.nodes()
     u = []
     v = []
 
     for i in range(len(a)):
-        if (dist(a[i],rand)<50):
-            u.append(Node(a[i],dist(a[i],rand)))
+        if (dist(a[i],goalPost)<50):
+            u.append(Node(a[i],dist(a[i],goalPost)))
             #print(a[i])
 
     sorted(u,key =lambda u: u.distance)
@@ -127,7 +127,7 @@ def Nearest(G,rand,k):
         else:
             v.append(u[j].point)
 
-    print(v)
+    #print(v)
     return v
 
 def initializing_obstacles(configuration): #initializing the circular obstacles
@@ -139,15 +139,18 @@ def initializing_obstacles(configuration): #initializing the circular obstacles
         cirObs.append((X/2,Y/2,200))
         cirObs.append((X/1.5,Y/1.5,60))
 
-def oracle(q_nearset,p1): #qnear is a list of near configuration with the random point
+def oracle(G,q_closest_goal,rand): #qnear is a list of near configuration with the random point
 
-    min_angle = math.fabs(atan2(q_nearset[0][1]-p1[1],q_nearset[0][0]-p1[0]))
-    q_new = q_nearset[0]
-    for i in range(len(q_nearset)):
-        angle = math.fabs(atan2(q_nearset[i][1]-p1[1],q_nearset[i][0]-p1[0]))
+    a = G.nodes()
+    min_angle = math.fabs(atan2(q_closest_goal[1]-rand[1],q_closest_goal[0]-rand[0]))
+    q_new = a[0]
+
+    for i in range(len(a)):
+        angle = math.fabs(atan2(a[i][1]-rand[1],a[i][0]-rand[0]))
         if (angle<min_angle):
-            q_new = q_nearset[i]
+            q_new = a[i]
             min_angle = angle
+    
     return q_new
 
 def main():
@@ -179,32 +182,93 @@ def main():
             if (edge_check(a1[ux],U_collection[j])==True):
                 G.add_edge(a1[ux],U_collection[j])
                 G.add_edge(U_collection[j],a1[ux])
+  ## above is to create the graph by PRM
+
+    G1 = nx.Graph()
+    G1.add_node(initPost)
+    #G1.add_node(goalPost)
+
+    b1 = G1.nodes()
+    q_closest_goal = b1[0]
+
+    xplot =[]
+    yplot =[]
+    count1 = 0
 
     while reach_goal == False:
 
         for i in range(N1):
             if (i==0 or i ==1): 
-                k =  1
+                k =  3
             else: 
-                k = math.log(i)
+                k = int(math.log(i))
 
             rand = generate_random_point()
-            #print(rand)
-            q_nearset = Nearest(G,rand,k)
-            q_new = oracle(q_nearset,rand)
-            G.add_node(q_new)
+            b1 = G1.nodes()
 
-            for j in range(len(q_nearset)):
-                G.add_edge(q_nearset[j],q_new)
-                G.add_edge(q_new,q_nearset[j])
+            for n in range(len(b1)):
+                if (dist(b1[n],goalPost)<dist(q_closest_goal,goalPost)):
+                    q_closest_goal = b1[n]
 
-            if(local_connector(q_new,goalPost)==True):
-                reach_goal = True
+            q_new = oracle(G,q_closest_goal,rand) 
+
+            if(edge_check(q_closest_goal, q_new)==True):
+                G1.add_node(q_new)
+                G1.add_edge(q_closest_goal,q_new)
+                G1.add_edge(q_new,q_closest_goal)
+                xplot.append(q_closest_goal)
+                yplot.append(q_new)
+            
+            #count1 = count1 +1 
+            #if (count1 >1000):
+                #reach_goal = True
+
+            q_nearset = Nearest(G1,goalPost,k)
+   
+            for m in range(len(q_nearset)):
+               if(local_connector(q_nearset[m],goalPost)==True):
+                   reach_goal = True
+                   break
+            if (reach_goal == True):
                 break
 
         print(reach_goal)
+        
+    #print(G1.edges())
+    #nx.draw(G1,pos=nx.spring_layout(G1))
+    #plt.show()    
+    
+    print("--- %s seconds ---" % (time.time() - start_time))
+    #plot the graph
+    circle1 = plt.Circle((cirObs[0][0], cirObs[0][1]), cirObs[0][2], color='r')
+    circle2 = plt.Circle((cirObs[1][0], cirObs[1][1]), cirObs[1][2], color='blue')
+    circle3 = plt.Circle((cirObs[2][0], cirObs[2][1]), cirObs[2][2], color='g', clip_on=False)
+
+    plt.plot(initPost[0],initPost[1], "bo")
+    plt.plot(goalPost[0],goalPost[1], "bo")
 
 
+    for m in range(len(xplot)):
+        xplot1, yplot1 = [xplot[m][0],yplot[m][0]], [xplot[m][1],yplot[m][1]]
+        plt.plot(xplot1,yplot1, marker = 'o')
+
+    ax = plt.gca()
+    ax.set_xlim((0, X))
+    ax.set_ylim((0, Y))
+
+    ax.add_artist(circle1)
+    ax.add_artist(circle2)
+    ax.add_artist(circle3)
+
+    shortest = nx.shortest_path(G1,source = initPost,target = goalPost)
+    for k in range(len(shortest)):
+        plt.plot(shortest[k][0],shortest[k][1], "bo")
+
+    print(shortest)
+    # here must be something like circle.plot() or not?
+
+    plt.show()
+    raw_input()
 
 if __name__ == '__main__':
     main()
