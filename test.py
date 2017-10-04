@@ -7,33 +7,29 @@ import numpy as np
 import networkx as nx
 import time
 
+
+#nx.draw(G)
+#plt.show()
+
 G = nx.Graph()
 
-G.add_node((1,1))
-G.add_node((3,3))
+G.add_nodes_from([1],color  ='red')
+G.add_nodes_from([2],color  ='yellow')
+color = nx.get_node_attributes(G,'color')
+print(G)
 
-G.add_edge((1,1),(4,4))
-G.add_edge((1,1),(3,3))
-G.add_edge((4,4),(2,2))
-G.add_edge((2,2),(3,3))
+class Config(list):
+    """List with arithmatic operators.
+    
+    """
+    def __init__(self, q, activeIndices=None):
+        super(Config, self).__init__(q[:])
+        if activeIndices is None:
+            self.activeIndices = range(len(self))
+        else:
+            assert isinstance(activeIndices, list)
+            self.activeIndices = activeIndices[:]
+            self.activeIndices.sort()
 
-a = []
-a = G.nodes()
-
-for ai in range(len(a)):
-	print(a[ai])
-
-
-a.remove((1,1))
-
-print(a)
-
-print(G.nodes())
-print(len(G))
-print(G.edges())
-
-
-nx.draw(G)
-plt.show()
-
-print(nx.shortest_path(G,source = (1,1), target= (3,3)))
+l = [1,2,3]
+print(l.Locate(1))
